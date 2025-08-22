@@ -126,7 +126,7 @@ export default function HistoryPage() {
   const categories = Array.from(new Set(translationHistory.map((item) => item.category)))
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-teal-900 via-slate-900 to-black">
       <SidebarNavigation />
 
       <div className="md:ml-64">

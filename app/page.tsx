@@ -181,29 +181,22 @@ export default function HomePage() {
     }
   }
 
+  // Add these refs at the top inside your HomePage component:
+  const homeSectionRef = useRef<HTMLDivElement>(null)
+  const featuresSectionRef = useRef<HTMLDivElement>(null)
+  const worksSectionRef = useRef<HTMLDivElement>(null)
+  // uploadSectionRef already exists
+
+  // Scroll functions
+  const scrollToSection = (ref: React.RefObject<HTMLElement>) => {
+    ref.current?.scrollIntoView({ behavior: "smooth" })
+  }
+
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-teal-900 via-slate-900 to-black text-white">
       
       {/* 🌟 Header */}
-      <header className="fixed top-0 left-0 w-full z-50 bg-gradient-to-r from-slate-900 via-black to-slate-900 border-b border-white/10">
-        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
-          
-          {/* Logo (top-left) */}
-          <div className="flex items-center gap-2">
-            <img 
-              src="/logo.png" // 🔥 Replace with your logo path
-              alt="HealthSpeak Logo"
-              className="h-10 w-10 rounded-md"
-            />
-            <span className="text-xl font-bold text-teal-300">HealthSpeak</span>
-          </div>
-
-          {/* Center Heading */}
-          <h2 className="absolute left-1/2 transform -translate-x-1/2 text-lg md:text-xl font-semibold text-white/90 tracking-wide">
-            Transforming Prescriptions into Clarity
-          </h2>
-        </div>
-      </header>
+      
       <header className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[90%] md:w-[80%] bg-black/40 backdrop-blur-lg border border-white/10 rounded-full shadow-lg">
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3">
           
@@ -212,24 +205,24 @@ export default function HomePage() {
             <img 
               src="/logo.png" // 🔥 Replace with your logo path
               alt="HealthSpeak Logo"
-              className="h-8 w-8 rounded-md"
+              className="h-15 w-15 rounded-md"
             />
             <span className="text-lg md:text-xl font-bold text-white">HealthSpeak</span>
           </div>
 
           {/* Nav Links */}
           <nav className="flex gap-6 text-sm md:text-base font-medium text-white/80">
-            <a href="#home" className="hover:text-white transition">Home</a>
-            <a href="#features" className="hover:text-white transition">Features</a>
-            <a href="#upload" className="hover:text-white transition">Upload</a>
-            <a href="#contact" className="hover:text-white transition">Contact</a>
+            <button className="hover:text-white transition bg-transparent border-0 p-0" onClick={() => scrollToSection(homeSectionRef)}>Home</button>
+            <button className="hover:text-white transition bg-transparent border-0 p-0" onClick={() => scrollToSection(featuresSectionRef)}>Features</button>
+            <button className="hover:text-white transition bg-transparent border-0 p-0" onClick={() => scrollToSection(worksSectionRef)}>Works</button>
+            <button className="hover:text-white transition bg-transparent border-0 p-0" onClick={scrollToUpload}>Upload</button>
           </nav>
         </div>
       </header>
 
 
 {/* 🌟 Hero Section */}
-<section className="relative flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-black to-slate-950 text-white px-6 text-center overflow-hidden">
+<section ref={homeSectionRef} id="home" className="relative flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-black to-slate-950 text-white px-6 text-center overflow-hidden">
   
   {/* Background subtle effect */}
   <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(45,212,191,0.15),transparent)] pointer-events-none"></div>
@@ -307,9 +300,9 @@ export default function HomePage() {
 </section>
 
       {/* Features Section */}
-      <section className="relative z-10 py-24 px-6 bg-white/5 backdrop-blur-md">
+      <section ref={featuresSectionRef} id="features" className="relative z-10 py-24 px-6 bg-white/5 backdrop-blur-md">
         <div className="max-w-6xl mx-auto text-center">
-          <h2 className="text-4xl font-bold mb-16">🔑 Key Features</h2>
+          <h2 className="text-4xl font-bold mb-16"> Key Features</h2>
           <div className="grid md:grid-cols-3 gap-10">
             {[
               { icon: <Upload className="w-10 h-10 text-teal-300" />, title: "Upload Prescription", desc: "Scan or upload your prescription and extract text instantly." },
@@ -339,9 +332,9 @@ export default function HomePage() {
       </section>
 
       {/* How It Works Section */}
-      <section className="relative z-10 py-24 px-6">
+      <section ref={worksSectionRef} id="works" className="relative z-10 py-24 px-6">
         <div className="max-w-6xl mx-auto text-center space-y-12">
-          <h2 className="text-4xl font-bold">🖼️ How It Works</h2>
+          <h2 className="text-4xl font-bold"> How It Works</h2>
           <div className="grid md:grid-cols-4 gap-10">
             {[
               { step: "1", title: "Upload", desc: "Upload or scan your prescription." },
@@ -367,7 +360,9 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-teal-900 via-slate-900 to-black">
+
+      {/* Upload section */}
+    <div ref={uploadSectionRef} id="upload" className="relative min-h-screen overflow-hidden bg-gradient-to-br from-teal-900 via-slate-900 to-black" >
 
       {/* Wavy Silk Pattern */}
       <div className="absolute inset-0 opacity-20">
