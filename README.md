@@ -1,30 +1,88 @@
-# No content
+# 🏥 HealthSpeak  
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+**Transforming complex medical prescriptions into clear, plain language.**  
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/rushang-chandekars-projects/v0-no-content)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/projects/vwf5E89gNDc)
+---
 
-## Overview
+## 🚀 Problem Statement  
+Patients are often handed prescriptions or medical documents filled with complex jargon and cryptic abbreviations.  
+This creates confusion, especially among people with **limited health literacy**, elderly patients, and rural communities.  
 
-This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
+- Misunderstood prescriptions → Wrong medication usage.  
+- Increases preventable medication errors, hospital readmissions, and health risks.  
+- Vulnerable groups struggle the most due to lack of clear explanations.  
 
-## Deployment
+---
 
-Your project is live at:
+## 💡 Our Solution: HealthSpeak  
+A **user-friendly web platform** that instantly transforms confusing prescriptions into plain language anyone can understand.  
 
-**[https://vercel.com/rushang-chandekars-projects/v0-no-content](https://vercel.com/rushang-chandekars-projects/v0-no-content)**
+### 🔑 Key Features  
+- 📷 **Scan or Upload Prescription** → Instant OCR text extraction.  
+- 🧾 **Decode Medical Jargon** → Converts complex terms into step-by-step plain language instructions.  
+- 🗣️ **Voice Narration** → Reads instructions aloud for elderly & visually impaired.  
+- 🌐 **Browser-Based** → No heavy servers needed; fast, private, and secure.  
+- 🛡️ **Future-Ready** → Multi-language and AI chatbot on roadmap.  
 
-## Build your app
+---
 
-Continue building your app on:
+## 🖼️ How It Works  
+1. Upload or scan a prescription.  
+2. OCR extracts text using **Google Vision API**.  
+3. Medical terms are mapped with a **local JSON medical dictionary**.  
+4. Clear explanations are displayed in **plain conversational language**.  
+5. Optional **Text-to-Speech** reads instructions aloud.  
 
-**[https://v0.app/chat/projects/vwf5E89gNDc](https://v0.app/chat/projects/vwf5E89gNDc)**
+---
 
-## How It Works
+## 🛠️ Tech Stack  
 
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+### Frontend  
+- **React.js** → Component-based, scalable UI.  
+- **Tailwind CSS** → Modern responsive design.  
+- **shadcn/ui** → Pre-built, accessible UI components.  
+- **Framer Motion** → Smooth transitions & animations.  
+
+### Core Functionality  
+- **OCR** → Google Vision API (extracts text from prescriptions).  
+- **Text-to-Speech (TTS)** → Browser **SpeechSynthesis API** for offline voice output.  
+- **Data Layer** → Local JSON mock database (medical dictionary).  
+- **Voice Output** → Web Speech API (cross-device accessibility).  
+
+---
+
+## 🎯 Innovation  
+- ✅ **100% In-Browser OCR & TTS** → No external servers, ensuring **privacy-friendly** usage.  
+- ✅ **Accessible & Inclusive** → Voice-enabled features for elderly and visually impaired.  
+- ✅ **Instant Plain-Language Guidance** → Easy to follow, reduces fear of medical jargon.  
+
+---
+
+## 🌍 Impact  
+- **Patients** → Fewer medication errors, more confidence.  
+- **Elderly & Rural Users** → Accessible care instructions.  
+- **Doctors & Hospitals** → Improved compliance & fewer misunderstandings.  
+- **Healthcare Industry** → Builds trust, safety, and satisfaction.  
+
+---
+
+## 🔮 What’s Next  
+- 🌐 Multi-language support (Hindi & regional languages).  
+- 🤖 AI Chatbot for medicine-related FAQs.  
+- ⚠️ Safety alerts for dangerous drug interactions.  
+- 💊 Integration with pharmacy & telemedicine platforms.  
+
+---
+
+## 👥 Team Nexora  
+- **Santosh Donapurge** (Team Leader)  
+- **Rushang Chandekar**  
+- **Shivam Naredi**  
+- **Shivraj Ambhore**  
+- **Sargun Singh Bhatia**  
+
+---
+
+## 🙏 Acknowledgments  
+Built for **Smackathon 2k25**  
+> “Making healthcare communication simple, safe, and accessible.”
