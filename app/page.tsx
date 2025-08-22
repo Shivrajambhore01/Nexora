@@ -1,21 +1,37 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { SidebarNavigation } from "@/components/sidebar-navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Upload, Camera, FileText, X, CheckCircle, AlertCircle } from "lucide-react"
+import {
+  Upload,
+  Camera,
+  FileText,
+  X,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react"
+import { CardContent } from "@/components/ui/card"
+import { Brain, Volume2, Zap } from "lucide-react"
+import { motion } from "framer-motion"
 
 const ACCEPTED_FILE_TYPES = {
   "application/pdf": [".pdf"],
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [
+    ".docx",
+  ],
   "image/jpeg": [".jpg", ".jpeg"],
   "image/png": [".png"],
 }
@@ -131,7 +147,9 @@ export default function HomePage() {
 
       canvas.toBlob((blob) => {
         if (blob) {
-          const file = new File([blob], "captured-document.png", { type: "image/png" })
+          const file = new File([blob], "captured-document.png", {
+            type: "image/png",
+          })
           handleFileSelect(file)
           setShowCameraDialog(false)
           // Stop camera stream
@@ -152,194 +170,439 @@ export default function HomePage() {
       }, 2000)
     }
   }
+// 🔹 Reference for upload section
+  const uploadSectionRef = useRef<HTMLDivElement>(null)
+
+  // 🔹 Scroll function
+  const scrollToUpload = () => {
+    if (uploadSectionRef.current) {
+      const offsetTop = uploadSectionRef.current.offsetTop
+      window.scrollTo({ top: offsetTop, behavior: "smooth" })
+    }
+  }
 
   return (
-    <div className="min-h-screen bg-background">
-      <SidebarNavigation />
+    <div className="relative min-h-screen bg-gradient-to-br from-teal-900 via-slate-900 to-black text-white">
+      
+      {/* 🌟 Header */}
+      <header className="fixed top-0 left-0 w-full z-50 bg-gradient-to-r from-slate-900 via-black to-slate-900 border-b border-white/10">
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+          
+          {/* Logo (top-left) */}
+          <div className="flex items-center gap-2">
+            <img 
+              src="/logo.png" // 🔥 Replace with your logo path
+              alt="HealthSpeak Logo"
+              className="h-10 w-10 rounded-md"
+            />
+            <span className="text-xl font-bold text-teal-300">HealthSpeak</span>
+          </div>
 
-      <div className="md:ml-64">
-        <main className="min-h-screen flex items-center justify-center p-4">
-          <div className="max-w-2xl w-full space-y-8">
-            {/* Header */}
-            <div className="text-center space-y-4">
-              <h1 className="text-4xl md:text-5xl font-bold text-foreground">Translate Your Document</h1>
-              <p className="text-xl text-muted-foreground">
-                Get a plain language version of your medical records in seconds.
-              </p>
-            </div>
+          {/* Center Heading */}
+          <h2 className="absolute left-1/2 transform -translate-x-1/2 text-lg md:text-xl font-semibold text-white/90 tracking-wide">
+            Transforming Prescriptions into Clarity
+          </h2>
+        </div>
+      </header>
+      <header className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[90%] md:w-[80%] bg-black/40 backdrop-blur-lg border border-white/10 rounded-full shadow-lg">
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3">
+          
+          {/* Logo + Site Name */}
+          <div className="flex items-center gap-2">
+            <img 
+              src="/logo.png" // 🔥 Replace with your logo path
+              alt="HealthSpeak Logo"
+              className="h-8 w-8 rounded-md"
+            />
+            <span className="text-lg md:text-xl font-bold text-white">HealthSpeak</span>
+          </div>
 
-            {/* Error Alert */}
-            {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
+          {/* Nav Links */}
+          <nav className="flex gap-6 text-sm md:text-base font-medium text-white/80">
+            <a href="#home" className="hover:text-white transition">Home</a>
+            <a href="#features" className="hover:text-white transition">Features</a>
+            <a href="#upload" className="hover:text-white transition">Upload</a>
+            <a href="#contact" className="hover:text-white transition">Contact</a>
+          </nav>
+        </div>
+      </header>
 
-            {/* Processing State */}
-            {isProcessing && (
-              <Card className="p-6">
-                <div className="text-center space-y-4">
-                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                    <Upload className="h-8 w-8 text-primary animate-pulse" />
-                  </div>
-                  <div className="space-y-2">
-                    <h3 className="text-lg font-semibold">Processing your document...</h3>
-                    <p className="text-muted-foreground">Please wait while we analyze your medical document.</p>
-                  </div>
-                  <Progress value={uploadProgress} className="w-full" />
+
+{/* 🌟 Hero Section */}
+<section className="relative flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-black to-slate-950 text-white px-6 text-center overflow-hidden">
+  
+  {/* Background subtle effect */}
+  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(45,212,191,0.15),transparent)] pointer-events-none"></div>
+
+  {/* Tagline */}
+  <motion.span
+    initial={{ opacity: 0, y: -10 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.8 }}
+    className="px-4 py-1 rounded-full bg-white/10 text-sm md:text-base border border-white/20 mb-6 mt-20"
+  >
+    ⚡ AI-Powered Health Education
+  </motion.span>
+
+  {/* Title */}
+  <motion.h1
+    initial={{ opacity: 0, y: 30 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.8 }}
+    className="text-5xl md:text-7xl font-extrabold leading-tight"
+  >
+    <span className="text-white">Master Your</span>{" "}
+    <span className="bg-gradient-to-r from-teal-300 to-cyan-400 bg-clip-text text-transparent">
+      Health Knowledge
+    </span>
+  </motion.h1>
+
+  {/* Subtitle */}
+  <motion.p
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 1, delay: 0.2 }}
+    className="text-lg md:text-2xl max-w-2xl text-white/80 mt-6"
+  >
+    Decode medical jargon instantly with{" "}
+    <span className="text-teal-300 font-semibold">clear, simple, and accessible explanations</span>.  
+    Empower yourself with AI-driven health insights.
+  </motion.p>
+
+  {/* CTA Buttons */}
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 1, delay: 0.4 }}
+    className="mt-10 flex flex-col md:flex-row gap-4"
+  >
+    <Button 
+      size="lg" 
+      className="bg-teal-500 hover:bg-teal-400 text-black font-semibold px-8 py-6 text-lg"
+      onClick={scrollToUpload}
+    >
+      Get Started
+    </Button>
+
+    <Button 
+      size="lg" 
+      variant="outline"
+      className="border-white/30 text-white hover:bg-white/10 px-8 py-6 text-lg"
+    >
+      Watch Demo
+    </Button>
+  </motion.div>
+
+  {/* Trust Badges */}
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ duration: 1, delay: 0.6 }}
+    className="mt-12 flex flex-col md:flex-row gap-6 text-sm text-white/70"
+  >
+    <span>✅ No account required</span>
+    <span>🔒 Secure & Private</span>
+    <span>👨‍⚕️ Trusted by 5,000+ learners</span>
+  </motion.div>
+</section>
+
+      {/* Features Section */}
+      <section className="relative z-10 py-24 px-6 bg-white/5 backdrop-blur-md">
+        <div className="max-w-6xl mx-auto text-center">
+          <h2 className="text-4xl font-bold mb-16">🔑 Key Features</h2>
+          <div className="grid md:grid-cols-3 gap-10">
+            {[
+              { icon: <Upload className="w-10 h-10 text-teal-300" />, title: "Upload Prescription", desc: "Scan or upload your prescription and extract text instantly." },
+              { icon: <Brain className="w-10 h-10 text-indigo-300" />, title: "Smart Decode", desc: "Transforms confusing medical jargon into plain, simple language." },
+              { icon: <Volume2 className="w-10 h-10 text-cyan-300" />, title: "Voice Narration", desc: "Reads out your instructions for better accessibility." },
+              { icon: <Zap className="w-10 h-10 text-yellow-300" />, title: "Lightning Fast", desc: "Get clear results in seconds, no delays or confusion." },
+              { icon: "🌐", title: "Browser Based", desc: "Works instantly in your browser — secure and private." },
+              { icon: "🤖", title: "Future Ready", desc: "Supports multi-language and AI chat guidance." },
+            ].map((f, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: i * 0.1 }}
+              >
+                <Card className="bg-white/10 border border-white/20 hover:bg-white/20 transition-colors duration-300 h-full">
+                  <CardContent className="p-8 flex flex-col items-center text-center space-y-4">
+                    <div className="text-4xl">{f.icon}</div>
+                    <h3 className="text-xl font-semibold">{f.title}</h3>
+                    <p className="text-white/80">{f.desc}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section className="relative z-10 py-24 px-6">
+        <div className="max-w-6xl mx-auto text-center space-y-12">
+          <h2 className="text-4xl font-bold">🖼️ How It Works</h2>
+          <div className="grid md:grid-cols-4 gap-10">
+            {[
+              { step: "1", title: "Upload", desc: "Upload or scan your prescription." },
+              { step: "2", title: "Extract", desc: "OCR instantly captures the text." },
+              { step: "3", title: "Decode", desc: "HealthSpeak explains in plain English." },
+              { step: "4", title: "Listen", desc: "Optional narration for easy understanding." },
+            ].map((s, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: i * 0.15 }}
+              >
+                <Card className="bg-white/10 border border-white/20 hover:scale-105 transform transition-transform duration-300">
+                  <CardContent className="p-8 space-y-3">
+                    <div className="text-4xl font-bold text-teal-400">{s.step}</div>
+                    <h3 className="text-xl font-semibold">{s.title}</h3>
+                    <p className="text-white/80">{s.desc}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-teal-900 via-slate-900 to-black">
+
+      {/* Wavy Silk Pattern */}
+      <div className="absolute inset-0 opacity-20">
+        <svg
+          className="w-full h-full"
+          xmlns="http://www.w3.org/2000/svg"
+          preserveAspectRatio="none"
+          viewBox="0 0 1440 320"
+        >
+          <path
+            fill="url(#grad)"
+            fillOpacity="0.4"
+            d="M0,96L60,112C120,128,240,160,360,149.3C480,139,600,85,720,96C840,107,960,181,1080,202.7C1200,224,1320,192,1380,176L1440,160L1440,0L1380,0C1320,0,1200,0,1080,0C960,0,840,0,720,0C600,0,480,0,360,0C240,0,120,0,60,0L0,0Z"
+          ></path>
+          <defs>
+            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#00f5d4" />
+              <stop offset="100%" stopColor="#0077b6" />
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+
+      {/* Foreground Content */}
+      <main className="relative z-10 flex items-center justify-center min-h-screen p-4">
+        <div className="max-w-2xl w-full space-y-8 text-center text-white">
+          {/* Header */}
+          <div className="space-y-4">
+            <h1 className="text-5xl md:text-6xl font-bold drop-shadow-lg">
+              Translate Your Prescription
+            </h1>
+            <p className="text-xl opacity-80">
+              Get a plain language version of your prescription in seconds.
+            </p>
+          </div>
+
+          {/* Error Alert */}
+          {error && (
+            <Alert variant="destructive" className="bg-red-500/20">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          {/* Processing State */}
+          {isProcessing && (
+            <Card className="p-6 bg-white/10 backdrop-blur-lg border border-white/20">
+              <div className="text-center space-y-4">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                  <Upload className="h-8 w-8 text-primary animate-pulse" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold">
+                    Processing your document...
+                  </h3>
+                  <p className="text-muted-foreground">
+                    Please wait while we analyze your medical document.
+                  </p>
+                </div>
+                <Progress value={uploadProgress} className="w-full" />
+              </div>
+            </Card>
+          )}
+
+          {/* Upload Area - Only show when not processing */}
+          {!isProcessing && (
+            <>
+              <Card
+                className={`p-8 border-2 border-dashed transition-colors cursor-pointer bg-white/10 backdrop-blur-lg border-white/20 ${
+                  dragActive
+                    ? "border-primary bg-primary/20"
+                    : uploadedFile
+                    ? "border-green-500 bg-green-800/30"
+                    : "hover:border-primary"
+                }`}
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <div className="text-center space-y-6">
+                  {uploadedFile ? (
+                    <>
+                      <div className="mx-auto w-16 h-16 bg-green-100/20 rounded-full flex items-center justify-center">
+                        <CheckCircle className="h-8 w-8 text-green-400" />
+                      </div>
+                      <div className="space-y-2">
+                        <h3 className="text-lg font-semibold">File Ready</h3>
+                        <p className="opacity-80">{uploadedFile.name}</p>
+                        <p className="text-sm opacity-70">
+                          {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                      <div className="flex space-x-2 justify-center">
+                        <Button onClick={() => processFile(uploadedFile)}>
+                          Process Document
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setUploadedFile(null)
+                          }}
+                        >
+                          <X className="h-4 w-4 mr-2" />
+                          Remove
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="mx-auto w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center">
+                        <Upload className="h-8 w-8 text-primary" />
+                      </div>
+                      <div className="space-y-2">
+                        <h3 className="text-lg font-semibold">
+                          Upload your prescription
+                        </h3>
+                        <p className="opacity-80">
+                          Drag & drop your file here, or click to browse
+                        </p>
+                        <p className="text-sm opacity-60">
+                          Supports PDF, DOCX, JPG, PNG up to 10MB
+                        </p>
+                      </div>
+                      <Button size="lg" className="w-full max-w-xs">
+                        Choose File
+                      </Button>
+                    </>
+                  )}
                 </div>
               </Card>
-            )}
 
-            {/* Upload area - only show when not processing */}
-            {!isProcessing && (
-              <>
-                <Card
-                  className={`p-8 border-2 border-dashed transition-colors cursor-pointer ${
-                    dragActive
-                      ? "border-primary bg-primary/5"
-                      : uploadedFile
-                        ? "border-green-500 bg-green-50 dark:bg-green-950"
-                        : "border-border hover:border-primary"
-                  }`}
-                  onDragEnter={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDragOver={handleDrag}
-                  onDrop={handleDrop}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <div className="text-center space-y-6">
-                    {uploadedFile ? (
-                      <>
-                        <div className="mx-auto w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-                          <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
-                        </div>
-                        <div className="space-y-2">
-                          <h3 className="text-lg font-semibold">File Ready</h3>
-                          <p className="text-muted-foreground">{uploadedFile.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
-                          </p>
-                        </div>
-                        <div className="flex space-x-2 justify-center">
-                          <Button onClick={() => processFile(uploadedFile)}>Process Document</Button>
-                          <Button
-                            variant="outline"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              setUploadedFile(null)
-                            }}
-                          >
-                            <X className="h-4 w-4 mr-2" />
-                            Remove
-                          </Button>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-                          <Upload className="h-8 w-8 text-primary" />
-                        </div>
-                        <div className="space-y-2">
-                          <h3 className="text-lg font-semibold">Upload your prescription</h3>
-                          <p className="text-muted-foreground">Drag & drop your file here, or click to browse</p>
-                          <p className="text-sm text-muted-foreground">Supports PDF, DOCX, JPG, PNG up to 10MB</p>
-                        </div>
-                        <Button size="lg" className="w-full max-w-xs">
-                          Choose File
+              {/* Hidden file input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.docx,.jpg,.jpeg,.png"
+                onChange={handleFileInputChange}
+                className="hidden"
+              />
+
+              {/* Alternative options */}
+              <div className="grid md:grid-cols-2 gap-4">
+                <Dialog open={showCameraDialog} onOpenChange={setShowCameraDialog}>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="h-16 flex items-center space-x-3 bg-transparent text-white border-white/40"
+                      onClick={startCamera}
+                    >
+                      <Camera className="h-6 w-6" />
+                      <span>Scan Document</span>
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Scan Document</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div className="relative">
+                        <video ref={videoRef} autoPlay className="w-full rounded-lg" />
+                        <canvas ref={canvasRef} className="hidden" />
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button onClick={capturePhoto} className="flex-1">
+                          Capture Photo
                         </Button>
-                      </>
-                    )}
-                  </div>
-                </Card>
-
-                {/* Hidden file input */}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".pdf,.docx,.jpg,.jpeg,.png"
-                  onChange={handleFileInputChange}
-                  className="hidden"
-                />
-
-                {/* Alternative options */}
-                <div className="grid md:grid-cols-2 gap-4">
-                  <Dialog open={showCameraDialog} onOpenChange={setShowCameraDialog}>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="lg"
-                        className="h-16 flex items-center space-x-3 bg-transparent"
-                        onClick={startCamera}
-                      >
-                        <Camera className="h-6 w-6" />
-                        <span>Scan Document</span>
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-md">
-                      <DialogHeader>
-                        <DialogTitle>Scan Document</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div className="relative">
-                          <video ref={videoRef} autoPlay className="w-full rounded-lg" />
-                          <canvas ref={canvasRef} className="hidden" />
-                        </div>
-                        <div className="flex space-x-2">
-                          <Button onClick={capturePhoto} className="flex-1">
-                            Capture Photo
-                          </Button>
-                          <Button
-                            variant="outline"
-                            onClick={() => {
-                              setShowCameraDialog(false)
-                              const stream = videoRef.current?.srcObject as MediaStream
-                              stream?.getTracks().forEach((track) => track.stop())
-                            }}
-                          >
-                            Cancel
-                          </Button>
-                        </div>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setShowCameraDialog(false)
+                            const stream = videoRef.current?.srcObject as MediaStream
+                            stream?.getTracks().forEach((track) => track.stop())
+                          }}
+                        >
+                          Cancel
+                        </Button>
                       </div>
-                    </DialogContent>
-                  </Dialog>
+                    </div>
+                  </DialogContent>
+                </Dialog>
 
-                  <Dialog open={showTextDialog} onOpenChange={setShowTextDialog}>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" size="lg" className="h-16 flex items-center space-x-3 bg-transparent">
-                        <FileText className="h-6 w-6" />
-                        <span>Enter Text</span>
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-md">
-                      <DialogHeader>
-                        <DialogTitle>Enter Prescription Text</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <Textarea
-                          placeholder="Type or paste your prescription text here..."
-                          value={manualText}
-                          onChange={(e) => setManualText(e.target.value)}
-                          rows={6}
-                        />
-                        <div className="flex space-x-2">
-                          <Button onClick={handleManualTextSubmit} disabled={!manualText.trim()} className="flex-1">
-                            Process Text
-                          </Button>
-                          <Button variant="outline" onClick={() => setShowTextDialog(false)}>
-                            Cancel
-                          </Button>
-                        </div>
+                <Dialog open={showTextDialog} onOpenChange={setShowTextDialog}>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="h-16 flex items-center space-x-3 bg-transparent text-white border-white/40"
+                    >
+                      <FileText className="h-6 w-6" />
+                      <span>Enter Text</span>
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Enter Prescription Text</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <Textarea
+                        placeholder="Type or paste your prescription text here..."
+                        value={manualText}
+                        onChange={(e) => setManualText(e.target.value)}
+                        rows={6}
+                      />
+                      <div className="flex space-x-2">
+                        <Button
+                          onClick={handleManualTextSubmit}
+                          disabled={!manualText.trim()}
+                          className="flex-1"
+                        >
+                          Process Text
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => setShowTextDialog(false)}
+                        >
+                          Cancel
+                        </Button>
                       </div>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </>
-            )}
-          </div>
-        </main>
-      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </>
+          )}
+        </div>
+      </main>
     </div>
+    {/* Footer */}
+      <footer className="relative z-10 py-8 px-6 bg-black/60 text-center text-white/70 text-sm">
+        © {new Date().getFullYear()} HealthSpeak. All rights reserved.
+      </footer>
+      </div>
   )
 }
