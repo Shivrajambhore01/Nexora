@@ -28,9 +28,19 @@ const mockChatHistory = [
       "I've analyzed your prescription for Lisinopril. This medication is commonly used to treat high blood pressure and protect your heart. Below you'll find a detailed explanation of how to use it safely.",
   },
 ];
+interface Entity {
+  name: string;
+  type: string;
+  salience?: number;
+  mentions?: { text: { content: string; beginOffset: number } }[];
+}
 
-function transformGoogleNLPApiData(apiData) {
-  const findEntity = (type) =>
+interface GoogleNLPApiData {
+  entities: Entity[];
+}
+
+function transformGoogleNLPApiData(apiData: GoogleNLPApiData) {
+  const findEntity = (type: string): string =>
     apiData.entities.find((e) => e.type === type)?.name || "";
 
   return {
@@ -520,3 +530,4 @@ End of prescription summary.F
     </div>
   );
 }
+
