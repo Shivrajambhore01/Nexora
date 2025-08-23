@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { AlertTriangle, Clock, Utensils, Send, Bot, User } from "lucide-react"
+import { AlertTriangle, Clock, Utensils, Send, Bot, User, Loader2 } from "lucide-react" // ✅ Added Loader2
 
 const mockChatHistory = [
   {
@@ -19,86 +19,87 @@ const mockChatHistory = [
 ]
 
 function transformGoogleNLPApiData(apiData) {
-    const findEntity = (type) => apiData.entities.find(e => e.type === type)?.name || "";
-  
-    return {
-        medication: {
-            name: findEntity("MEDICINE"),
-            dosage: findEntity("STRENGTH"),
-            frequency: findEntity("FREQUENCY"),
-            purpose: "For blood pressure and heart health", // This would require more complex derivation
-        },
-        usage: {
-            instructions: "Take one tablet by mouth every morning",
-            duration: "Continue as prescribed by your doctor",
-            timing: "Best taken at the same time each day",
-        },
-        sideEffects: {
-            common: ["Dry cough", "Dizziness", "Headache", "Fatigue"],
-            severe: ["Severe allergic reaction", "Kidney problems", "High potassium levels"],
-        },
-        restrictions: {
-            foods: ["Avoid excessive salt", "Limit potassium-rich foods", "Moderate alcohol"],
-            activities: ["Avoid sudden position changes", "Stay hydrated"],
-        },
-    };
+  const findEntity = (type) => apiData.entities.find((e) => e.type === type)?.name || ""
+
+  return {
+    medication: {
+      name: findEntity("MEDICINE"),
+      dosage: findEntity("STRENGTH"),
+      frequency: findEntity("FREQUENCY"),
+      purpose: "For blood pressure and heart health",
+    },
+    usage: {
+      instructions: "Take one tablet by mouth every morning",
+      duration: "Continue as prescribed by your doctor",
+      timing: "Best taken at the same time each day",
+    },
+    sideEffects: {
+      common: ["Dry cough", "Dizziness", "Headache", "Fatigue"],
+      severe: ["Severe allergic reaction", "Kidney problems", "High potassium levels"],
+    },
+    restrictions: {
+      foods: ["Avoid excessive salt", "Limit potassium-rich foods", "Moderate alcohol"],
+      activities: ["Avoid sudden position changes", "Stay hydrated"],
+    },
+  }
 }
 
 export default function TranslatePage() {
-  const [prescriptionData, setPrescriptionData] = useState(null)
+  const [prescriptionData, setPrescriptionData] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
   const [chatMessages, setChatMessages] = useState(mockChatHistory)
   const [inputMessage, setInputMessage] = useState("")
+  const [saving, setSaving] = useState(false) // ✅ For save button state
 
   useEffect(() => {
-        const fetchPrescriptionDirectly = async () => {
-            setIsLoading(true)
-            setError(null)
-            
-            const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
-            const API_URL = `https://language.googleapis.com/v1/documents:analyzeEntities?key=${API_KEY}`;
-          
-            const prescriptionText = "Take Lisinopril 10mg once daily for high blood pressure.";
+    const fetchPrescriptionDirectly = async () => {
+      setIsLoading(true)
+      setError(null)
 
-            try {
-                 if (!API_KEY) {
-                    throw new Error("API Key is missing. Make sure you have a .env.local file with NEXT_PUBLIC_GOOGLE_API_KEY.");
-                }
+      const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_API_KEY
+      const API_URL = `https://language.googleapis.com/v1/documents:analyzeEntities?key=${API_KEY}`
 
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        document: {
-                            content: prescriptionText,
-                            type: 'PLAIN_TEXT',
-                        },
-                        encodingType: 'UTF8',
-                    }),
-                });
+      const prescriptionText = "Take Lisinopril 10mg once daily for high blood pressure."
 
-                if (!response.ok) {
-                    const errorBody = await response.json();
-                    throw new Error(`Google API Error: ${errorBody.error.message}`);
-                }
-                
-                const data = await response.json();
-                
-                const formattedData = transformGoogleNLPApiData(data);
-                setPrescriptionData(formattedData);
+      try {
+        if (!API_KEY) {
+          throw new Error(
+            "API Key is missing. Make sure you have a .env.local file with NEXT_PUBLIC_GOOGLE_API_KEY."
+          )
+        }
 
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setIsLoading(false);
-            }
-        };
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            document: {
+              content: prescriptionText,
+              type: "PLAIN_TEXT",
+            },
+            encodingType: "UTF8",
+          }),
+        })
 
-        fetchPrescriptionDirectly();
-    }, []);
+        if (!response.ok) {
+          const errorBody = await response.json()
+          throw new Error(`Google API Error: ${errorBody.error.message}`)
+        }
+
+        const data = await response.json()
+        const formattedData = transformGoogleNLPApiData(data)
+        setPrescriptionData(formattedData)
+      } catch (err: any) {
+        setError(err.message)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchPrescriptionDirectly()
+  }, [])
 
   const handleSendMessage = () => {
     if (!inputMessage.trim()) return
@@ -115,21 +116,53 @@ export default function TranslatePage() {
 
     setChatMessages(newMessages)
     setInputMessage("")
-    if (isLoading) {
-      return (
+  }
+
+  const handleSave = async () => {
+    if (!prescriptionData) return
+    setSaving(true)
+    try {
+      const response = await fetch("/api/history", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          documentType: "Prescription",
+          documentName: prescriptionData.medication?.name || "Unknown",
+          dateTranslated: new Date().toISOString(),
+          status: "Completed",
+          category: "Blood Pressure",
+        }),
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        alert("Saved to MongoDB! ✅")
+      } else {
+        alert("Failed to save ❌")
+      }
+    } catch (err) {
+      console.error(err)
+      alert("Error saving ❌")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (isLoading) {
+    return (
       <div className="flex min-h-screen flex-col items-center justify-center">
-      <Loader2 className="h-12 w-12 animate-spin text-primary" />
-    </div>
-  );
-    }
-    if (error) {
-      return (
-        <div className="flex min-h-screen items-center justify-center">
-          <AlertTriangle className="h-12 w-12 text-destructive" />
-          <p className="ml-4 text-destructive">{error}</p>
-        </div>
-      );
-    }
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <AlertTriangle className="h-12 w-12 text-destructive" />
+        <p className="ml-4 text-destructive">{error}</p>
+      </div>
+    )
   }
 
   return (
@@ -147,7 +180,7 @@ export default function TranslatePage() {
               </p>
             </div>
 
-            {/* AI Introduction Message */}
+            {/* AI Introduction */}
             <Card className="border-primary/20 bg-primary/5">
               <CardContent className="p-6">
                 <div className="flex items-start space-x-3">
@@ -163,124 +196,149 @@ export default function TranslatePage() {
             </Card>
 
             {/* Medication Overview */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <div className="w-6 h-6 bg-primary rounded flex items-center justify-center">
-                    <span className="text-xs font-bold text-primary-foreground">Rx</span>
-                  </div>
-                  <span>Medication Overview</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Medication</h4>
-                    <p className="text-lg font-medium">{mockPrescriptionData.medication.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {mockPrescriptionData.medication.dosage} - {mockPrescriptionData.medication.frequency}
-                    </p>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Purpose</h4>
-                    <p className="text-sm">{mockPrescriptionData.medication.purpose}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            {prescriptionData && (
+              <>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <div className="w-6 h-6 bg-primary rounded flex items-center justify-center">
+                        <span className="text-xs font-bold text-primary-foreground">Rx</span>
+                      </div>
+                      <span>Medication Overview</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
+                          Medication
+                        </h4>
+                        <p className="text-lg font-medium">{prescriptionData.medication.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {prescriptionData.medication.dosage} - {prescriptionData.medication.frequency}
+                        </p>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
+                          Purpose
+                        </h4>
+                        <p className="text-sm">{prescriptionData.medication.purpose}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-            {/* Usage Instructions */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Clock className="h-5 w-5 text-primary" />
-                  <span>How to Take This Medication</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div>
-                  <h4 className="font-medium mb-2">Instructions</h4>
-                  <p className="text-sm text-muted-foreground">{mockPrescriptionData.usage.instructions}</p>
-                </div>
-                <div>
-                  <h4 className="font-medium mb-2">Timing</h4>
-                  <p className="text-sm text-muted-foreground">{mockPrescriptionData.usage.timing}</p>
-                </div>
-                <div>
-                  <h4 className="font-medium mb-2">Duration</h4>
-                  <p className="text-sm text-muted-foreground">{mockPrescriptionData.usage.duration}</p>
-                </div>
-              </CardContent>
-            </Card>
+                {/* Usage Instructions */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <Clock className="h-5 w-5 text-primary" />
+                      <span>How to Take This Medication</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div>
+                      <h4 className="font-medium mb-2">Instructions</h4>
+                      <p className="text-sm text-muted-foreground">{prescriptionData.usage.instructions}</p>
+                    </div>
+                    <div>
+                      <h4 className="font-medium mb-2">Timing</h4>
+                      <p className="text-sm text-muted-foreground">{prescriptionData.usage.timing}</p>
+                    </div>
+                    <div>
+                      <h4 className="font-medium mb-2">Duration</h4>
+                      <p className="text-sm text-muted-foreground">{prescriptionData.usage.duration}</p>
+                    </div>
+                  </CardContent>
+                </Card>
 
-            {/* Side Effects */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <AlertTriangle className="h-5 w-5 text-accent" />
-                  <span>Potential Side Effects</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <h4 className="font-medium mb-3">Common Side Effects</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {mockPrescriptionData.sideEffects.common.map((effect, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs">
-                        {effect}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-                <Separator />
-                <div>
-                  <h4 className="font-medium mb-3 text-destructive">
-                    Serious Side Effects (Contact Doctor Immediately)
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {mockPrescriptionData.sideEffects.severe.map((effect, index) => (
-                      <Badge key={index} variant="destructive" className="text-xs">
-                        {effect}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                {/* Side Effects */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <AlertTriangle className="h-5 w-5 text-accent" />
+                      <span>Potential Side Effects</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <h4 className="font-medium mb-3">Common Side Effects</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {prescriptionData.sideEffects.common.map((effect, index) => (
+                          <Badge key={index} variant="secondary" className="text-xs">
+                            {effect}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    <Separator />
+                    <div>
+                      <h4 className="font-medium mb-3 text-destructive">
+                        Serious Side Effects (Contact Doctor Immediately)
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {prescriptionData.sideEffects.severe.map((effect, index) => (
+                          <Badge key={index} variant="destructive" className="text-xs">
+                            {effect}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-            {/* Dietary Restrictions */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Utensils className="h-5 w-5 text-primary" />
-                  <span>Dietary & Lifestyle Guidelines</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <h4 className="font-medium mb-3">Food & Drink Considerations</h4>
-                  <ul className="space-y-2">
-                    {mockPrescriptionData.restrictions.foods.map((restriction, index) => (
-                      <li key={index} className="text-sm text-muted-foreground flex items-start">
-                        <span className="w-2 h-2 bg-primary rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                        {restriction}
-                      </li>
-                    ))}
-                  </ul>
+                {/* Dietary Restrictions */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <Utensils className="h-5 w-5 text-primary" />
+                      <span>Dietary & Lifestyle Guidelines</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <h4 className="font-medium mb-3">Food & Drink Considerations</h4>
+                      <ul className="space-y-2">
+                        {prescriptionData.restrictions.foods.map((restriction, index) => (
+                          <li
+                            key={index}
+                            className="text-sm text-muted-foreground flex items-start"
+                          >
+                            <span className="w-2 h-2 bg-primary rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                            {restriction}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <h4 className="font-medium mb-3">Activity Guidelines</h4>
+                      <ul className="space-y-2">
+                        {prescriptionData.restrictions.activities.map((activity, index) => (
+                          <li
+                            key={index}
+                            className="text-sm text-muted-foreground flex items-start"
+                          >
+                            <span className="w-2 h-2 bg-accent rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                            {activity}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* ✅ Save Button */}
+                <div className="flex justify-end">
+                  <Button
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="mt-4 px-6 py-2 bg-green-600 hover:bg-green-700 rounded-lg"
+                  >
+                    {saving ? "Saving..." : "Save"}
+                  </Button>
                 </div>
-                <div>
-                  <h4 className="font-medium mb-3">Activity Guidelines</h4>
-                  <ul className="space-y-2">
-                    {mockPrescriptionData.restrictions.activities.map((activity, index) => (
-                      <li key={index} className="text-sm text-muted-foreground flex items-start">
-                        <span className="w-2 h-2 bg-accent rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                        {activity}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
+              </>
+            )}
 
             {/* Chat Interface */}
             <Card>
@@ -294,9 +352,14 @@ export default function TranslatePage() {
                 <ScrollArea className="h-64 w-full border rounded-md p-4">
                   <div className="space-y-4">
                     {chatMessages.map((message, index) => (
-                      <div key={index} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
+                      <div
+                        key={index}
+                        className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                      >
                         <div
-                          className={`flex items-start space-x-2 max-w-[80%] ${message.role === "user" ? "flex-row-reverse space-x-reverse" : ""}`}
+                          className={`flex items-start space-x-2 max-w-[80%] ${
+                            message.role === "user" ? "flex-row-reverse space-x-reverse" : ""
+                          }`}
                         >
                           <div
                             className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { SidebarNavigation } from "@/components/sidebar-navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -9,120 +9,68 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, Eye, Download, Calendar, FileText, Filter } from "lucide-react"
 
-// Mock translation history data
-const translationHistory = [
-  {
-    id: 1,
-    documentType: "Prescription",
-    documentName: "Lisinopril 10mg",
-    dateTranslated: "2024-01-15",
-    status: "Completed",
-    category: "Blood Pressure",
-  },
-  {
-    id: 2,
-    documentType: "Blood Test Results",
-    documentName: "Complete Blood Count",
-    dateTranslated: "2024-01-12",
-    status: "Completed",
-    category: "Lab Results",
-  },
-  {
-    id: 3,
-    documentType: "MRI Report",
-    documentName: "Brain MRI Scan",
-    dateTranslated: "2024-01-10",
-    status: "Completed",
-    category: "Imaging",
-  },
-  {
-    id: 4,
-    documentType: "Prescription",
-    documentName: "Metformin 500mg",
-    dateTranslated: "2024-01-08",
-    status: "Completed",
-    category: "Diabetes",
-  },
-  {
-    id: 5,
-    documentType: "Lab Report",
-    documentName: "Lipid Panel",
-    dateTranslated: "2024-01-05",
-    status: "Completed",
-    category: "Lab Results",
-  },
-  {
-    id: 6,
-    documentType: "Prescription",
-    documentName: "Atorvastatin 20mg",
-    dateTranslated: "2024-01-03",
-    status: "Completed",
-    category: "Cholesterol",
-  },
-  {
-    id: 7,
-    documentType: "X-Ray Report",
-    documentName: "Chest X-Ray",
-    dateTranslated: "2024-01-01",
-    status: "Completed",
-    category: "Imaging",
-  },
-  {
-    id: 8,
-    documentType: "Prescription",
-    documentName: "Amoxicillin 875mg",
-    dateTranslated: "2023-12-28",
-    status: "Completed",
-    category: "Antibiotics",
-  },
-]
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "Completed":
-      return "default"
-    case "Processing":
-      return "secondary"
-    case "Failed":
-      return "destructive"
-    default:
-      return "default"
-  }
-}
-
-const getCategoryColor = (category: string) => {
-  const colors = {
-    "Blood Pressure": "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-    "Lab Results": "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-    Imaging: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
-    Diabetes: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
-    Cholesterol: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-300",
-    Antibiotics: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-  }
-  return colors[category as keyof typeof colors] || "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300"
-}
-
 export default function HistoryPage() {
+  const [translationHistory, setTranslationHistory] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [filterCategory, setFilterCategory] = useState("all")
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 6
 
-  // Filter and search logic
+  // Fetch history from API
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const res = await fetch("/api/history")
+        const data = await res.json()
+        setTranslationHistory(data)
+      } catch (err) {
+        console.error("Failed to fetch history:", err)
+      }
+    }
+    fetchHistory()
+  }, [])
+
+  // Badge colors
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Completed":
+        return "default"
+      case "Processing":
+        return "secondary"
+      case "Failed":
+        return "destructive"
+      default:
+        return "default"
+    }
+  }
+
+  const getCategoryColor = (category: string) => {
+    const colors: Record<string, string> = {
+      "Blood Pressure": "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+      "Lab Results": "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+      Imaging: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
+      Diabetes: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
+      Cholesterol: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-300",
+      Antibiotics: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+    }
+    return colors[category] || "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300"
+  }
+
+  // Filter + Search
   const filteredHistory = translationHistory.filter((item) => {
     const matchesSearch =
-      item.documentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.documentType.toLowerCase().includes(searchTerm.toLowerCase())
+      item.documentName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.documentType?.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCategory = filterCategory === "all" || item.category === filterCategory
     return matchesSearch && matchesCategory
   })
 
-  // Pagination logic
+  // Pagination
   const totalPages = Math.ceil(filteredHistory.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
   const paginatedHistory = filteredHistory.slice(startIndex, startIndex + itemsPerPage)
 
-  // Get unique categories for filter
+  // Unique categories
   const categories = Array.from(new Set(translationHistory.map((item) => item.category)))
 
   return (
@@ -138,7 +86,7 @@ export default function HistoryPage() {
               <p className="text-muted-foreground">View and manage all your translated medical documents.</p>
             </div>
 
-            {/* Search and Filter Controls */}
+            {/* Search + Filter */}
             <Card>
               <CardContent className="p-6">
                 <div className="flex flex-col md:flex-row gap-4">
@@ -169,10 +117,10 @@ export default function HistoryPage() {
               </CardContent>
             </Card>
 
-            {/* Translation History Grid */}
+            {/* History Grid */}
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {paginatedHistory.map((item) => (
-                <Card key={item.id} className="hover:shadow-md transition-shadow">
+              {paginatedHistory.map((item, idx) => (
+                <Card key={item._id || idx} className="hover:shadow-md transition-shadow">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center space-x-2">
@@ -187,7 +135,9 @@ export default function HistoryPage() {
                       <h4 className="font-medium text-sm mb-1">{item.documentName}</h4>
                       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                         <Calendar className="h-4 w-4" />
-                        <span>{new Date(item.dateTranslated).toLocaleDateString()}</span>
+                        <span>
+                          {item.dateTranslated ? new Date(item.dateTranslated).toLocaleDateString() : "N/A"}
+                        </span>
                       </div>
                     </div>
 
