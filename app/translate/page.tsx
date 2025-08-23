@@ -1,14 +1,25 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { SidebarNavigation } from "@/components/sidebar-navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
-import { AlertTriangle, Clock, Utensils, Send, Bot, User, Loader2 } from "lucide-react" // ✅ Added Loader2
+import { useState, useEffect } from "react";
+import { SidebarNavigation } from "@/components/sidebar-navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import {
+  AlertTriangle,
+  Clock,
+  Utensils,
+  Send,
+  Bot,
+  User,
+  Loader2,
+  Play,
+  Pause,
+} from "lucide-react"; // ✅ Added Loader2
+import { summarizeAndSpeakHindi } from "@/lib/tts";
 
 const mockChatHistory = [
   {
@@ -16,10 +27,11 @@ const mockChatHistory = [
     content:
       "I've analyzed your prescription for Lisinopril. This medication is commonly used to treat high blood pressure and protect your heart. Below you'll find a detailed explanation of how to use it safely.",
   },
-]
+];
 
 function transformGoogleNLPApiData(apiData) {
-  const findEntity = (type) => apiData.entities.find((e) => e.type === type)?.name || ""
+  const findEntity = (type) =>
+    apiData.entities.find((e) => e.type === type)?.name || "";
 
   return {
     medication: {
@@ -35,38 +47,76 @@ function transformGoogleNLPApiData(apiData) {
     },
     sideEffects: {
       common: ["Dry cough", "Dizziness", "Headache", "Fatigue"],
-      severe: ["Severe allergic reaction", "Kidney problems", "High potassium levels"],
+      severe: [
+        "Severe allergic reaction",
+        "Kidney problems",
+        "High potassium levels",
+      ],
     },
     restrictions: {
-      foods: ["Avoid excessive salt", "Limit potassium-rich foods", "Moderate alcohol"],
+      foods: [
+        "Avoid excessive salt",
+        "Limit potassium-rich foods",
+        "Moderate alcohol",
+      ],
       activities: ["Avoid sudden position changes", "Stay hydrated"],
     },
-  }
+  };
 }
 
 export default function TranslatePage() {
-  const [prescriptionData, setPrescriptionData] = useState<any>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [chatMessages, setChatMessages] = useState(mockChatHistory)
-  const [inputMessage, setInputMessage] = useState("")
-  const [saving, setSaving] = useState(false) // ✅ For save button state
+  const [prescriptionData, setPrescriptionData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [chatMessages, setChatMessages] = useState(mockChatHistory);
+  const [inputMessage, setInputMessage] = useState("");
+  const [saving, setSaving] = useState(false); // ✅ For save button state
+  const [TextToSpech, setTextToSpech] = useState(false); // ✅ For save button state
+
+  useEffect(() => {
+    if (TextToSpech) {
+      setTextToSpech(true);
+
+      const text = `
+      Here is your prescription summary.
+
+Medication Overview: This medicine is for blood pressure and overall heart health.
+
+How to take it: Take one tablet by mouth every morning. It is best to take it at the same time each day. Continue using it as prescribed by your doctor.
+
+Possible side effects:
+Common ones may include dry cough, dizziness, headache, or fatigue.
+Serious side effects that require contacting your doctor immediately include severe allergic reaction, kidney problems, or high potassium levels.
+
+Diet and lifestyle tips:
+Avoid too much salt. Limit potassium-rich foods. Keep alcohol moderate.
+For daily activities, avoid sudden position changes and remember to stay well hydrated.
+
+End of prescription summary.F 
+    `;
+
+      summarizeAndSpeakHindi(text); // Pass the full text
+    } else {
+      setTextToSpech(false);
+    }
+  }, [TextToSpech]);
 
   useEffect(() => {
     const fetchPrescriptionDirectly = async () => {
-      setIsLoading(true)
-      setError(null)
+      setIsLoading(true);
+      setError(null);
 
-      const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_API_KEY
-      const API_URL = `https://language.googleapis.com/v1/documents:analyzeEntities?key=${API_KEY}`
+      const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
+      const API_URL = `https://language.googleapis.com/v1/documents:analyzeEntities?key=${API_KEY}`;
 
-      const prescriptionText = "Take Lisinopril 10mg once daily for high blood pressure."
+      const prescriptionText =
+        "Take Lisinopril 10mg once daily for high blood pressure.";
 
       try {
         if (!API_KEY) {
           throw new Error(
             "API Key is missing. Make sure you have a .env.local file with NEXT_PUBLIC_GOOGLE_API_KEY."
-          )
+          );
         }
 
         const response = await fetch(API_URL, {
@@ -81,28 +131,28 @@ export default function TranslatePage() {
             },
             encodingType: "UTF8",
           }),
-        })
+        });
 
         if (!response.ok) {
-          const errorBody = await response.json()
-          throw new Error(`Google API Error: ${errorBody.error.message}`)
+          const errorBody = await response.json();
+          throw new Error(`Google API Error: ${errorBody.error.message}`);
         }
 
-        const data = await response.json()
-        const formattedData = transformGoogleNLPApiData(data)
-        setPrescriptionData(formattedData)
+        const data = await response.json();
+        const formattedData = transformGoogleNLPApiData(data);
+        setPrescriptionData(formattedData);
       } catch (err: any) {
-        setError(err.message)
+        setError(err.message);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchPrescriptionDirectly()
-  }, [])
+    fetchPrescriptionDirectly();
+  }, []);
 
   const handleSendMessage = () => {
-    if (!inputMessage.trim()) return
+    if (!inputMessage.trim()) return;
 
     const newMessages = [
       ...chatMessages,
@@ -112,15 +162,15 @@ export default function TranslatePage() {
         content:
           "Thank you for your question. Based on your prescription, I can provide more specific guidance. This is a simulated response - in a real application, this would be powered by AI analysis of your specific medication.",
       },
-    ]
+    ];
 
-    setChatMessages(newMessages)
-    setInputMessage("")
-  }
+    setChatMessages(newMessages);
+    setInputMessage("");
+  };
 
   const handleSave = async () => {
-    if (!prescriptionData) return
-    setSaving(true)
+    if (!prescriptionData) return;
+    setSaving(true);
     try {
       const response = await fetch("/api/history", {
         method: "POST",
@@ -132,28 +182,28 @@ export default function TranslatePage() {
           status: "Completed",
           category: "Blood Pressure",
         }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
       if (data.success) {
-        alert("Saved to MongoDB! ✅")
+        alert("Saved to MongoDB! ✅");
       } else {
-        alert("Failed to save ❌")
+        alert("Failed to save ❌");
       }
     } catch (err) {
-      console.error(err)
-      alert("Error saving ❌")
+      console.error(err);
+      alert("Error saving ❌");
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   if (isLoading) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -162,7 +212,7 @@ export default function TranslatePage() {
         <AlertTriangle className="h-12 w-12 text-destructive" />
         <p className="ml-4 text-destructive">{error}</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -174,9 +224,30 @@ export default function TranslatePage() {
           <div className="max-w-4xl mx-auto space-y-6">
             {/* Header */}
             <div className="space-y-2">
-              <h1 className="text-3xl font-bold">Your HealthWise Explanation</h1>
+              <h1 className="text-3xl font-bold">
+                Your HealthWise Explanation
+              </h1>
+              <div className="p-1 bg-black/30 backdrop-blur-md rounded-xl flex justify-center w-[200px] text-center gap-3 items-center">
+                <p>Read Aloud</p>
+                {TextToSpech ? (
+                  <button
+                    className="bg-green-500 p-2 m-2 z rounded-full hover:bg-green-400"
+                    onClick={() => setTextToSpech(!TextToSpech)}
+                  >
+                    <Pause />
+                  </button>
+                ) : (
+                  <button
+                    className="bg-green-500 p-2 m-2 z rounded-full hover:bg-green-400"
+                    onClick={() => setTextToSpech(!TextToSpech)}
+                  >
+                    <Play />
+                  </button>
+                )}
+              </div>
               <p className="text-muted-foreground">
-                Here's a simplified breakdown of your prescription in plain language.
+                Here's a simplified breakdown of your prescription in plain
+                language.
               </p>
             </div>
 
@@ -189,7 +260,9 @@ export default function TranslatePage() {
                   </div>
                   <div className="space-y-2">
                     <p className="font-medium">AI Assistant</p>
-                    <p className="text-sm text-muted-foreground">{mockChatHistory[0].content}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {mockChatHistory[0].content}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -202,7 +275,9 @@ export default function TranslatePage() {
                   <CardHeader>
                     <CardTitle className="flex items-center space-x-2">
                       <div className="w-6 h-6 bg-primary rounded flex items-center justify-center">
-                        <span className="text-xs font-bold text-primary-foreground">Rx</span>
+                        <span className="text-xs font-bold text-primary-foreground">
+                          Rx
+                        </span>
                       </div>
                       <span>Medication Overview</span>
                     </CardTitle>
@@ -213,16 +288,21 @@ export default function TranslatePage() {
                         <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
                           Medication
                         </h4>
-                        <p className="text-lg font-medium">{prescriptionData.medication.name}</p>
+                        <p className="text-lg font-medium">
+                          {prescriptionData.medication.name}
+                        </p>
                         <p className="text-sm text-muted-foreground">
-                          {prescriptionData.medication.dosage} - {prescriptionData.medication.frequency}
+                          {prescriptionData.medication.dosage} -{" "}
+                          {prescriptionData.medication.frequency}
                         </p>
                       </div>
                       <div>
                         <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
                           Purpose
                         </h4>
-                        <p className="text-sm">{prescriptionData.medication.purpose}</p>
+                        <p className="text-sm">
+                          {prescriptionData.medication.purpose}
+                        </p>
                       </div>
                     </div>
                   </CardContent>
@@ -239,15 +319,21 @@ export default function TranslatePage() {
                   <CardContent className="space-y-3">
                     <div>
                       <h4 className="font-medium mb-2">Instructions</h4>
-                      <p className="text-sm text-muted-foreground">{prescriptionData.usage.instructions}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {prescriptionData.usage.instructions}
+                      </p>
                     </div>
                     <div>
                       <h4 className="font-medium mb-2">Timing</h4>
-                      <p className="text-sm text-muted-foreground">{prescriptionData.usage.timing}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {prescriptionData.usage.timing}
+                      </p>
                     </div>
                     <div>
                       <h4 className="font-medium mb-2">Duration</h4>
-                      <p className="text-sm text-muted-foreground">{prescriptionData.usage.duration}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {prescriptionData.usage.duration}
+                      </p>
                     </div>
                   </CardContent>
                 </Card>
@@ -264,11 +350,17 @@ export default function TranslatePage() {
                     <div>
                       <h4 className="font-medium mb-3">Common Side Effects</h4>
                       <div className="flex flex-wrap gap-2">
-                        {prescriptionData.sideEffects.common.map((effect, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
-                            {effect}
-                          </Badge>
-                        ))}
+                        {prescriptionData.sideEffects.common.map(
+                          (effect, index) => (
+                            <Badge
+                              key={index}
+                              variant="secondary"
+                              className="text-xs"
+                            >
+                              {effect}
+                            </Badge>
+                          )
+                        )}
                       </div>
                     </div>
                     <Separator />
@@ -277,11 +369,17 @@ export default function TranslatePage() {
                         Serious Side Effects (Contact Doctor Immediately)
                       </h4>
                       <div className="flex flex-wrap gap-2">
-                        {prescriptionData.sideEffects.severe.map((effect, index) => (
-                          <Badge key={index} variant="destructive" className="text-xs">
-                            {effect}
-                          </Badge>
-                        ))}
+                        {prescriptionData.sideEffects.severe.map(
+                          (effect, index) => (
+                            <Badge
+                              key={index}
+                              variant="destructive"
+                              className="text-xs"
+                            >
+                              {effect}
+                            </Badge>
+                          )
+                        )}
                       </div>
                     </div>
                   </CardContent>
@@ -297,31 +395,37 @@ export default function TranslatePage() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      <h4 className="font-medium mb-3">Food & Drink Considerations</h4>
+                      <h4 className="font-medium mb-3">
+                        Food & Drink Considerations
+                      </h4>
                       <ul className="space-y-2">
-                        {prescriptionData.restrictions.foods.map((restriction, index) => (
-                          <li
-                            key={index}
-                            className="text-sm text-muted-foreground flex items-start"
-                          >
-                            <span className="w-2 h-2 bg-primary rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                            {restriction}
-                          </li>
-                        ))}
+                        {prescriptionData.restrictions.foods.map(
+                          (restriction, index) => (
+                            <li
+                              key={index}
+                              className="text-sm text-muted-foreground flex items-start"
+                            >
+                              <span className="w-2 h-2 bg-primary rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                              {restriction}
+                            </li>
+                          )
+                        )}
                       </ul>
                     </div>
                     <div>
                       <h4 className="font-medium mb-3">Activity Guidelines</h4>
                       <ul className="space-y-2">
-                        {prescriptionData.restrictions.activities.map((activity, index) => (
-                          <li
-                            key={index}
-                            className="text-sm text-muted-foreground flex items-start"
-                          >
-                            <span className="w-2 h-2 bg-accent rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                            {activity}
-                          </li>
-                        ))}
+                        {prescriptionData.restrictions.activities.map(
+                          (activity, index) => (
+                            <li
+                              key={index}
+                              className="text-sm text-muted-foreground flex items-start"
+                            >
+                              <span className="w-2 h-2 bg-accent rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                              {activity}
+                            </li>
+                          )
+                        )}
                       </ul>
                     </div>
                   </CardContent>
@@ -345,7 +449,8 @@ export default function TranslatePage() {
               <CardHeader>
                 <CardTitle>Ask Follow-up Questions</CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Have questions about your medication? Ask me anything for more detailed explanations.
+                  Have questions about your medication? Ask me anything for more
+                  detailed explanations.
                 </p>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -354,16 +459,24 @@ export default function TranslatePage() {
                     {chatMessages.map((message, index) => (
                       <div
                         key={index}
-                        className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                        className={`flex ${
+                          message.role === "user"
+                            ? "justify-end"
+                            : "justify-start"
+                        }`}
                       >
                         <div
                           className={`flex items-start space-x-2 max-w-[80%] ${
-                            message.role === "user" ? "flex-row-reverse space-x-reverse" : ""
+                            message.role === "user"
+                              ? "flex-row-reverse space-x-reverse"
+                              : ""
                           }`}
                         >
                           <div
                             className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                              message.role === "user" ? "bg-secondary" : "bg-primary"
+                              message.role === "user"
+                                ? "bg-secondary"
+                                : "bg-primary"
                             }`}
                           >
                             {message.role === "user" ? (
@@ -405,5 +518,5 @@ export default function TranslatePage() {
         </main>
       </div>
     </div>
-  )
+  );
 }
