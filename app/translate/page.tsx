@@ -231,14 +231,14 @@ End of prescription summary.F
                 <p>Read Aloud</p>
                 {TextToSpech ? (
                   <button
-                    className="bg-green-500 p-2 m-2 z rounded-full hover:bg-green-400"
+                    className="bg-teal-500 hover:bg-teal-400 text-black font-semibold px-8 py-6 text-lg"
                     onClick={() => setTextToSpech(!TextToSpech)}
                   >
                     <Pause />
                   </button>
                 ) : (
                   <button
-                    className="bg-green-500 p-2 m-2 z rounded-full hover:bg-green-400"
+                    className="bg-teal-500 hover:bg-teal-400 text-black font-semibold px-8 py-6 text-lg"
                     onClick={() => setTextToSpech(!TextToSpech)}
                   >
                     <Play />
@@ -436,7 +436,7 @@ End of prescription summary.F
                   <Button
                     onClick={handleSave}
                     disabled={saving}
-                    className="mt-4 px-6 py-2 bg-green-600 hover:bg-green-700 rounded-lg"
+                    className="bg-teal-500 hover:bg-teal-400 text-black font-semibold px-8 py-6 text-lg"
                   >
                     {saving ? "Saving..." : "Save"}
                   </Button>
