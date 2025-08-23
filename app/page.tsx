@@ -188,7 +188,7 @@ export default function HomePage() {
   // uploadSectionRef already exists
 
   // Scroll functions
-  const scrollToSection = (ref: React.RefObject<HTMLElement>) => {
+  const scrollToSection = (ref: React.RefObject<HTMLElement | null>) => {
     ref.current?.scrollIntoView({ behavior: "smooth" })
   }
 
@@ -601,3 +601,4 @@ export default function HomePage() {
       </div>
   )
 }
+
