@@ -21,10 +21,16 @@ export default function HistoryPage() {
     const fetchHistory = async () => {
       try {
         const res = await fetch("/api/history")
-        const data = await res.json()
-        setTranslationHistory(data)
+        const json = await res.json()
+
+        if (json.success && Array.isArray(json.data)) {
+          setTranslationHistory(json.data) // ✅ Use only the array
+        } else {
+          setTranslationHistory([]) // fallback
+        }
       } catch (err) {
         console.error("Failed to fetch history:", err)
+        setTranslationHistory([])
       }
     }
     fetchHistory()
