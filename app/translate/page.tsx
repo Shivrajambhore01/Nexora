@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { SidebarNavigation } from "@/components/sidebar-navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -10,29 +10,6 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { AlertTriangle, Clock, Utensils, Send, Bot, User } from "lucide-react"
 
-// Mock data for demonstration
-const mockPrescriptionData = {
-  medication: {
-    name: "Lisinopril",
-    dosage: "10mg",
-    frequency: "Once daily",
-    purpose: "Blood pressure management and heart health protection",
-  },
-  usage: {
-    instructions: "Take one tablet by mouth every morning with or without food",
-    duration: "Continue as prescribed by your doctor",
-    timing: "Best taken at the same time each day",
-  },
-  sideEffects: {
-    common: ["Dry cough", "Dizziness", "Headache", "Fatigue"],
-    severe: ["Severe allergic reaction", "Kidney problems", "High potassium levels"],
-  },
-  restrictions: {
-    foods: ["Avoid excessive salt", "Limit potassium-rich foods (bananas, oranges)", "Moderate alcohol consumption"],
-    activities: ["Avoid sudden position changes", "Stay hydrated", "Monitor blood pressure regularly"],
-  },
-}
-
 const mockChatHistory = [
   {
     role: "assistant",
@@ -41,9 +18,87 @@ const mockChatHistory = [
   },
 ]
 
+function transformGoogleNLPApiData(apiData) {
+    const findEntity = (type) => apiData.entities.find(e => e.type === type)?.name || "";
+  
+    return {
+        medication: {
+            name: findEntity("MEDICINE"),
+            dosage: findEntity("STRENGTH"),
+            frequency: findEntity("FREQUENCY"),
+            purpose: "For blood pressure and heart health", // This would require more complex derivation
+        },
+        usage: {
+            instructions: "Take one tablet by mouth every morning",
+            duration: "Continue as prescribed by your doctor",
+            timing: "Best taken at the same time each day",
+        },
+        sideEffects: {
+            common: ["Dry cough", "Dizziness", "Headache", "Fatigue"],
+            severe: ["Severe allergic reaction", "Kidney problems", "High potassium levels"],
+        },
+        restrictions: {
+            foods: ["Avoid excessive salt", "Limit potassium-rich foods", "Moderate alcohol"],
+            activities: ["Avoid sudden position changes", "Stay hydrated"],
+        },
+    };
+}
+
 export default function TranslatePage() {
+  const [prescriptionData, setPrescriptionData] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [chatMessages, setChatMessages] = useState(mockChatHistory)
   const [inputMessage, setInputMessage] = useState("")
+
+  useEffect(() => {
+        const fetchPrescriptionDirectly = async () => {
+            setIsLoading(true)
+            setError(null)
+            
+            const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
+            const API_URL = `https://language.googleapis.com/v1/documents:analyzeEntities?key=${API_KEY}`;
+          
+            const prescriptionText = "Take Lisinopril 10mg once daily for high blood pressure.";
+
+            try {
+                 if (!API_KEY) {
+                    throw new Error("API Key is missing. Make sure you have a .env.local file with NEXT_PUBLIC_GOOGLE_API_KEY.");
+                }
+
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        document: {
+                            content: prescriptionText,
+                            type: 'PLAIN_TEXT',
+                        },
+                        encodingType: 'UTF8',
+                    }),
+                });
+
+                if (!response.ok) {
+                    const errorBody = await response.json();
+                    throw new Error(`Google API Error: ${errorBody.error.message}`);
+                }
+                
+                const data = await response.json();
+                
+                const formattedData = transformGoogleNLPApiData(data);
+                setPrescriptionData(formattedData);
+
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchPrescriptionDirectly();
+    }, []);
 
   const handleSendMessage = () => {
     if (!inputMessage.trim()) return
@@ -60,6 +115,21 @@ export default function TranslatePage() {
 
     setChatMessages(newMessages)
     setInputMessage("")
+    if (isLoading) {
+      return (
+      <div className="flex min-h-screen flex-col items-center justify-center">
+      <Loader2 className="h-12 w-12 animate-spin text-primary" />
+    </div>
+  );
+    }
+    if (error) {
+      return (
+        <div className="flex min-h-screen items-center justify-center">
+          <AlertTriangle className="h-12 w-12 text-destructive" />
+          <p className="ml-4 text-destructive">{error}</p>
+        </div>
+      );
+    }
   }
 
   return (
